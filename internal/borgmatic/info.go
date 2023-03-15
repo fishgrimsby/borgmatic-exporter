@@ -4,12 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"os/exec"
+	"strings"
 )
 
 func getInfo(config string) ([]InfoResult, error) {
 	var borgmaticCmd = exec.Command("borgmatic")
 	if config != "" {
-		borgmaticCmd.Args = append(borgmaticCmd.Args, "-c", config)
+		borgmaticCmd.Args = append(borgmaticCmd.Args, "-c")
+		configs := strings.Split(config, " ")
+		borgmaticCmd.Args = append(borgmaticCmd.Args, configs...)
+
 	}
 	borgmaticCmd.Args = append(borgmaticCmd.Args, "info", "--json")
 
