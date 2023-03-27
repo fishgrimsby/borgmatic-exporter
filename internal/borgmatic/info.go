@@ -3,12 +3,11 @@ package borgmatic
 import (
 	"encoding/json"
 	"errors"
-	"os/exec"
 	"strings"
 )
 
 func getInfo(config string) ([]InfoResult, error) {
-	var borgmaticCmd = exec.Command("borgmatic")
+	var borgmaticCmd = execCommand("borgmatic")
 	if config != "" {
 		borgmaticCmd.Args = append(borgmaticCmd.Args, "-c")
 		configs := strings.Split(config, " ")
