@@ -2,12 +2,11 @@ package borg
 
 import (
 	"errors"
-	"os/exec"
 	"strings"
 )
 
 func getVersion() (string, error) {
-	borgmaticCmd := exec.Command("borg", "--version")
+	borgmaticCmd := execCommand("borg", "--version")
 
 	borgVersion, err := borgmaticCmd.Output()
 	if err != nil {
