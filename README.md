@@ -96,3 +96,5 @@ The following configuration options are available and must be set via Environmen
 - BORGMATIC_EXPORTER_PORT - Set the http listen port. Default to `8090`
 - BORGMATIC_EXPORTER_ENDPOINT - Set the metrics endpoint. Defaults to `metrics`
 - BORGMATIC_EXPORTER_CONFIG - Overrides the default config paths using `borgmatic -c`. Uses Borgmatic defaults if not set. Multiple config paths must be separated with spaces, i.e `/path/to/config1.yaml /path/to/config2.yaml`
+- BORGMATIC_EXPORTER_DEBUG - Enable debug messages to stdout
+- BORGMATIC_EXPORTER_LOGFORMAT - Set the format of logs. Valid options are `keyvalue` (default) and `json`
