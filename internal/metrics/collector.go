@@ -1,15 +1,14 @@
 package metrics
 
 import (
-	"log"
-
 	"github.com/fishgrimsby/borgmatic-exporter/internal/borg"
 	"github.com/fishgrimsby/borgmatic-exporter/internal/borgmatic"
+	"github.com/fishgrimsby/borgmatic-exporter/internal/logs"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 type Collector struct {
-	s                          string
+	config                     string
 	borgmaticTotalUniqueChunks *prometheus.Desc
 	borgmaticTotalChunks       *prometheus.Desc
 	borgmaticDeduplicatedSize  *prometheus.Desc
@@ -22,10 +21,10 @@ type Collector struct {
 	borgVersion                *prometheus.Desc
 }
 
-func New(s string) *Collector {
+func New(config string) *Collector {
 
 	return &Collector{
-		s:                          s,
+		config:                     config,
 		borgmaticTotalUniqueChunks: prometheus.NewDesc("borgmatic_unique_chunks_total", "Total number of unique chunks in backup data", []string{"repository"}, nil),
 		borgmaticTotalChunks:       prometheus.NewDesc("borgmatic_chunks_total", "Total number of chunks in backup data", []string{"repository"}, nil),
 		borgmaticDeduplicatedSize:  prometheus.NewDesc("borgmatic_deduplicated_size", "Deduplicated size in bytes of backup data", []string{"repository"}, nil),
@@ -53,16 +52,17 @@ func (collector *Collector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (collector *Collector) Collect(ch chan<- prometheus.Metric) {
+	logs.Logger.Debug("Start collecting metrics")
 	borg, err := borg.New()
 	if err != nil {
-		log.Fatal("Borg error")
+		logs.Logger.Error(err.Error())
 	}
 
 	ch <- prometheus.MustNewConstMetric(collector.borgVersion, prometheus.GaugeValue, 1, borg.Version)
 
-	borgmatic, err := borgmatic.New(collector.s)
+	borgmatic, err := borgmatic.New(collector.config)
 	if err != nil {
-		log.Fatal("Borgmatic error")
+		logs.Logger.Error(err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(collector.borgmaticVersion, prometheus.GaugeValue, 1, borgmatic.Version)
 	ch <- prometheus.MustNewConstMetric(collector.borgmaticRepos, prometheus.GaugeValue, float64(len(borgmatic.ListResult)))
@@ -79,4 +79,6 @@ func (collector *Collector) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.MustNewConstMetric(collector.borgmaticTotalChunks, prometheus.GaugeValue, float64(info.Cache.Stats.TotalChunks), info.Repository.Location)
 		ch <- prometheus.MustNewConstMetric(collector.borgmaticTotalUniqueChunks, prometheus.GaugeValue, float64(info.Cache.Stats.TotalUniqueChunks), info.Repository.Location)
 	}
+
+	logs.Logger.Debug("End collecting metrics")
 }

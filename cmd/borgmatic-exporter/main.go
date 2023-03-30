@@ -3,42 +3,40 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
-	"github.com/kelseyhightower/envconfig"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
+	"github.com/fishgrimsby/borgmatic-exporter/internal/config"
+	"github.com/fishgrimsby/borgmatic-exporter/internal/logs"
 	"github.com/fishgrimsby/borgmatic-exporter/internal/metrics"
 )
 
-type Specification struct {
-	Port     string `default:"8090"`
-	Endpoint string `default:"metrics"`
-	Config   string `default:""`
-}
-
 func main() {
-	var s Specification
-	err := envconfig.Process("borgmatic_exporter", &s)
+	config, err := config.Load()
+	logs.Configure(config.Debug, config.LogFormat)
+
 	if err != nil {
-		log.Fatal(err.Error())
+		logs.Logger.Error(err.Error())
+		os.Exit(1)
 	}
 
-	collector := metrics.New(s.Config)
+	collector := metrics.New(config.Config)
 	prometheus.MustRegister(collector)
 
-	http.Handle(fmt.Sprintf("/%s", s.Endpoint), promhttp.Handler())
-
-	fmt.Printf("Listening on port %s with endpoint /%s", s.Port, s.Endpoint)
-	err = http.ListenAndServe(fmt.Sprintf(":%s", s.Port), nil)
+	http.Handle(fmt.Sprintf("/%s", config.Endpoint), promhttp.Handler())
+	logs.Logger.Info(fmt.Sprintf("listening on http://localhost:%s/%s", config.Port, config.Endpoint))
+	err = http.ListenAndServe(fmt.Sprintf(":%s", config.Port), nil)
 
 	if errors.Is(err, http.ErrServerClosed) {
-		fmt.Printf("server closed\n")
+		logs.Logger.Error("server closed",
+			"error", err.Error())
 	} else if err != nil {
-		fmt.Printf("error starting server: %s\n", err)
+		logs.Logger.Error("error starting server",
+			"error", err.Error())
+		logs.Logger.Error("exiting application")
 		os.Exit(1)
 	}
 }
