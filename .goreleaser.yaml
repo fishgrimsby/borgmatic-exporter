@@ -1,0 +1,17 @@
+# .goreleaser.yaml
+project_name: borgmatic-exporter
+builds:
+  -
+    id: borgmatic-exporter
+    main: ./cmd/borgmatic-exporter
+    goos:
+      - darwin
+      - linux
+      - windows
+      - freebsd
+    goarch:
+      - '386'
+      - amd64
+      - arm64
+      - arm
+    
