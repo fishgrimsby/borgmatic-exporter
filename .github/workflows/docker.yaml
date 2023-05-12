@@ -3,7 +3,7 @@ name: Publish Docker image
 on:
   push:
     branches:
-      - "chore/add-docker-publish-action"
+      - "main"
   release:
     types: [published]
 
