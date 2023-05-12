@@ -20,9 +20,9 @@ func Configure(debug bool, format string) {
 
 	switch format {
 	case "json":
-		handler = opts.NewJSONHandler(os.Stdout)
+		handler = slog.NewJSONHandler(os.Stdout, &opts)
 	default:
-		handler = opts.NewTextHandler(os.Stdout)
+		handler = slog.NewTextHandler(os.Stdout, &opts)
 	}
 
 	Logger = slog.New(handler)
