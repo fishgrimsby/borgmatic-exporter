@@ -1,5 +1,5 @@
-FROM golang:1.20 AS build-stage
-
+FROM --platform=$BUILDPLATFORM golang:1.20 AS build-stage
+ARG BUILDPLATFORM
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
@@ -10,7 +10,8 @@ RUN ls -al
 FROM build-stage AS test-stage
 RUN go test -v ./...
 
-FROM debian:bullseye-slim AS package-stage
+FROM --platform=$BUILDPLATFORM debian:bullseye-slim AS package-stage
+ARG BUILDPLATFORM
 WORKDIR /
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
@@ -20,7 +21,8 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-FROM package-stage AS final-stage
+FROM --platform=$BUILDPLATFORM package-stage AS final-stage
+ARG BUILDPLATFORM
 WORKDIR /
 COPY --from=build-stage /app/borgmatic-exporter /bin/borgmatic-exporter
 EXPOSE 8090

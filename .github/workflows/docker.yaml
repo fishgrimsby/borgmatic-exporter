@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+      - "chore/fix-dockerhub-unknown-arch-os"
   release:
     types: [published]
 
