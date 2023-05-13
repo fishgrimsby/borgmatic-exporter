@@ -7,11 +7,17 @@ builds:
     goos:
       - darwin
       - linux
-      - windows
+      - netbsd
       - freebsd
+      - openbsd
     goarch:
       - '386'
       - amd64
       - arm64
       - arm
+      - mips
+      - mipsle
+      - mips64le
+      - ppc64el
+      - s390x
     
