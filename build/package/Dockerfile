@@ -5,7 +5,6 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . ./
 RUN go build ./cmd/borgmatic-exporter
-RUN ls -al
 
 FROM build-stage AS test-stage
 RUN go test -v ./...
