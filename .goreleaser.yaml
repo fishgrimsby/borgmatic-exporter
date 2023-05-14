@@ -18,6 +18,6 @@ builds:
       - mips
       - mipsle
       - mips64le
-      - ppc64el
+      - ppc64le
       - s390x
     
