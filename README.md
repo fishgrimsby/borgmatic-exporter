@@ -83,6 +83,9 @@ WantedBy=multi-user.target
 4. Start the service `systemctl start borgmatic-exporter.service`
 5. Enable service start on boot `systemctl enable borgmatic-exporter.service`
 
+## Docker
+A multi-architecture docker image with usage instructions is available at https://hub.docker.com/r/fishgrimsby/borgmatic-exporter
+
 ## Build
 1. `git clone https://github.com/fishgrimsby/borgmatic-exporter.git`
 2. `cd borgmatic-exporter`
