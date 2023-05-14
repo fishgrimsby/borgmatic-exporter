@@ -54,13 +54,16 @@ func (b *borgmatic) LastBackupTime(result *ListResult) int64 {
 
 	sort.Sort(sort.Reverse(sort.StringSlice(times)))
 
-	convert, err := time.Parse("2006-01-02T15:04:05.999999999", times[0])
+	if len(times) > 0 {
+		convert, err := time.Parse("2006-01-02T15:04:05.999999999", times[0])
 
-	if err != nil {
-		lastBackupTime = 0
+		if err != nil {
+			lastBackupTime = 0
+		}
+
+		lastBackupTime = convert.Unix()
+
 	}
-
-	lastBackupTime = convert.Unix()
 
 	return int64(lastBackupTime)
 }

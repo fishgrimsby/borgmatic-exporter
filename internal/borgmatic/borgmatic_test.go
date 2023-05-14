@@ -28,3 +28,15 @@ func TestLastBackupTime(t *testing.T) {
 		t.Fatalf(`LastBackupTime(listResult) = %v, want match for %#v`, got, want)
 	}
 }
+
+func TestLastBackupTimeZeroArchives(t *testing.T) {
+	listResultZeroArchives := listResult
+	listResultZeroArchives.Archives = []Archive{}
+	b, _ := New("")
+	var want int64 = 0
+	got := b.LastBackupTime(&listResultZeroArchives)
+
+	if want != got {
+		t.Fatalf(`LastBackupTime(listResultZeroArchives) = %v, want match for %#v`, got, want)
+	}
+}
