@@ -9,7 +9,7 @@ RUN go build ./cmd/borgmatic-exporter
 FROM build-stage AS test-stage
 RUN go test -v ./...
 
-FROM debian:bullseye-slim AS package-stage
+FROM debian:bookworm-slim AS package-stage
 WORKDIR /
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
