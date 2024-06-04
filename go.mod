@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/prometheus/client_golang v1.19.1
-	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f
+	golang.org/x/exp v0.0.0-20240604190554-fc45aab8b7f8
 )
 
 require (
