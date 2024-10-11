@@ -27,8 +27,9 @@ func main() {
 	prometheus.MustRegister(collector)
 
 	http.Handle(fmt.Sprintf("/%s", config.Endpoint), promhttp.Handler())
-	logs.Logger.Info(fmt.Sprintf("listening on http://localhost:%s/%s", config.Port, config.Endpoint))
-	err = http.ListenAndServe(fmt.Sprintf(":%s", config.Port), nil)
+	addr := config.Host + ":" + config.Port
+	logs.Logger.Info(fmt.Sprintf("listening on http://%s/%s", addr, config.Endpoint))
+	err = http.ListenAndServe(addr, nil)
 
 	if errors.Is(err, http.ErrServerClosed) {
 		logs.Logger.Error("server closed",
