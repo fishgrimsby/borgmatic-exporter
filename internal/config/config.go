@@ -6,6 +6,7 @@ import (
 )
 
 type specification struct {
+	Host      string `default:"0.0.0.0"`
 	Port      string `default:"8090"`
 	Endpoint  string `default:"metrics"`
 	Config    string `default:""`
