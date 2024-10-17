@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/prometheus/client_golang v1.20.2
+	github.com/prometheus/client_golang v1.20.5
 	golang.org/x/exp v0.0.0-20240823005443-9b4947da3948
 )
 
