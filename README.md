@@ -52,8 +52,8 @@ borgmatic_unique_chunks_total{repository="ssh://borg@server01/backup/my-data"} 1
 ```
 
 ## Running locally
-1. Download the appropriate release for your platform `curl -LO https://github.com/fishgrimsby/borgmatic-exporter/releases/download/v0.0.4/borgmatic-exporter_0.0.4_linux_amd64.tar.gz`
-3. Extract the binary `tar xzvf borgmatic-exporter_0.0.4_linux_amd64.tar.gz`
+1. Download the appropriate release for your platform `curl -LO https://github.com/fishgrimsby/borgmatic-exporter/releases/download/v0.1.0/borgmatic-exporter_0.1.0_linux_amd64.tar.gz`
+3. Extract the binary `tar xzvf borgmatic-exporter_0.1.0_linux_amd64.tar.gz`
 4. Allow execution `chmod +x borgmatic-exporter`
 5. Run the executable `sudo ./borgmatic-exporter`
 6. Browse to http://localhost:8090/metrics
