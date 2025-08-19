@@ -1,13 +1,13 @@
 module github.com/fishgrimsby/borgmatic-exporter
 
-go 1.23.0
+go 1.24.0
 
 toolchain go1.24.4
 
 require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/prometheus/client_golang v1.22.0
-	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b
+	golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b
 )
 
 require (
