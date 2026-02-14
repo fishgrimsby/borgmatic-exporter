@@ -16,12 +16,12 @@ import (
 
 func main() {
 	config, err := config.Load()
-	logs.Configure(config.Debug, config.LogFormat)
-
 	if err != nil {
-		logs.Logger.Error(err.Error())
+		fmt.Fprintf(os.Stderr, "error loading config: %s\n", err)
 		os.Exit(1)
 	}
+
+	logs.Configure(config.Debug, config.LogFormat)
 
 	collector := metrics.New(config.Config)
 	prometheus.MustRegister(collector)
