@@ -11,9 +11,9 @@ func New() (*borg, error) {
 
 	if err != nil {
 		b.Version = "0"
+	} else {
+		b.Version = ver
 	}
-
-	b.Version = ver
 
 	return &b, nil
 }

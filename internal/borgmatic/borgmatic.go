@@ -8,7 +8,7 @@ import (
 type borgmatic struct {
 	Version     string
 	ListResult  []ListResult
-	InfoResullt []InfoResult
+	InfoResult []InfoResult
 }
 
 func New(config string) (*borgmatic, error) {
@@ -19,9 +19,9 @@ func New(config string) (*borgmatic, error) {
 
 	if err != nil {
 		b.Version = "0"
+	} else {
+		b.Version = ver
 	}
-
-	b.Version = ver
 
 	// Get List Results
 	res, err := getArchives(config)
@@ -39,7 +39,7 @@ func New(config string) (*borgmatic, error) {
 		info = []InfoResult{}
 	}
 
-	b.InfoResullt = info
+	b.InfoResult = info
 
 	return &b, nil
 }
@@ -59,9 +59,9 @@ func (b *borgmatic) LastBackupTime(result *ListResult) int64 {
 
 		if err != nil {
 			lastBackupTime = 0
+		} else {
+			lastBackupTime = convert.Unix()
 		}
-
-		lastBackupTime = convert.Unix()
 
 	}
 
