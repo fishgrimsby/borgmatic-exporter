@@ -1,7 +1,6 @@
 package config
 
 import (
-	"github.com/fishgrimsby/borgmatic-exporter/internal/logs"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -14,15 +13,11 @@ type specification struct {
 	LogFormat string `default:"keyvalue"`
 }
 
-var config specification
-
-func init() {
+func Load() (*specification, error) {
+	var config specification
 	err := envconfig.Process("borgmatic_exporter", &config)
 	if err != nil {
-		logs.Logger.Error(err.Error())
+		return nil, err
 	}
-}
-
-func Load() (*specification, error) {
 	return &config, nil
 }
