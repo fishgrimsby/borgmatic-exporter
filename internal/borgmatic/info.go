@@ -2,7 +2,7 @@ package borgmatic
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -20,10 +20,12 @@ func getInfo(config string) ([]InfoResult, error) {
 
 	cmdResult, err := borgmaticCmd.Output()
 	if err != nil {
-		return nil, errors.New("unable to get borgmatic info")
+		return nil, fmt.Errorf("unable to get borgmatic info: %w", err)
 	}
 
-	json.Unmarshal([]byte(cmdResult), &info)
+	if err := json.Unmarshal([]byte(cmdResult), &info); err != nil {
+		return nil, fmt.Errorf("unable to parse borgmatic info: %w", err)
+	}
 
 	return info, nil
 }

@@ -2,7 +2,7 @@ package borgmatic
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -20,10 +20,12 @@ func getArchives(config string) ([]ListResult, error) {
 
 	cmdResult, err := borgmaticCmd.Output()
 	if err != nil {
-		return nil, errors.New("unable to list archives")
+		return nil, fmt.Errorf("unable to list archives: %w", err)
 	}
 
-	json.Unmarshal([]byte(cmdResult), &archives)
+	if err := json.Unmarshal([]byte(cmdResult), &archives); err != nil {
+		return nil, fmt.Errorf("unable to parse archives list: %w", err)
+	}
 
 	return archives, nil
 }
