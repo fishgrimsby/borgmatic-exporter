@@ -13,5 +13,5 @@ func getVersion() (string, error) {
 		return "", errors.New("executable not found")
 	}
 
-	return strings.ReplaceAll(string(borgVersion), "\n", ""), nil
+	return strings.TrimSpace(string(borgVersion)), nil
 }

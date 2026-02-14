@@ -13,5 +13,5 @@ func getVersion() (string, error) {
 		return "", errors.New("borgmatic executable not found")
 	}
 
-	return strings.ReplaceAll(string(borgmaticVersion), "\n", ""), nil
+	return strings.TrimSpace(string(borgmaticVersion)), nil
 }
