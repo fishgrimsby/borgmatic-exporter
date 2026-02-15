@@ -1,6 +1,7 @@
 package borgmatic
 
 import (
+	"context"
 	"reflect"
 	"testing"
 )
@@ -8,7 +9,7 @@ import (
 func TestNew(t *testing.T) {
 	config := ""
 	want := &borgmatic{}
-	got, err := New(config)
+	got, err := New(context.Background(), config)
 
 	if err != nil {
 		t.Fatalf("Expected nil error, got %#v", err)
@@ -20,7 +21,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestLastBackupTime(t *testing.T) {
-	b, _ := New("")
+	b, _ := New(context.Background(), "")
 	var want int64 = 1678913859
 	got := b.LastBackupTime(&listResult)
 
@@ -32,7 +33,7 @@ func TestLastBackupTime(t *testing.T) {
 func TestLastBackupTimeZeroArchives(t *testing.T) {
 	listResultZeroArchives := listResult
 	listResultZeroArchives.Archives = []Archive{}
-	b, _ := New("")
+	b, _ := New(context.Background(), "")
 	var want int64 = 0
 	got := b.LastBackupTime(&listResultZeroArchives)
 

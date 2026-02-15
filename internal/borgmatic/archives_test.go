@@ -1,6 +1,7 @@
 package borgmatic
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -45,10 +46,10 @@ var listResult ListResult = ListResult{
 
 func TestGetArchivesSingleRepository(t *testing.T) {
 	execCommand = fakeExecCommandGetArchivesSingleRepository
-	defer func() { execCommand = exec.Command }()
+	defer func() { execCommand = exec.CommandContext }()
 
 	want := []ListResult{listResult}
-	got, err := getArchives("")
+	got, err := getArchives(context.Background(), "")
 
 	if err != nil {
 		t.Fatalf("Expected nil error, got %#v", err)
@@ -60,7 +61,7 @@ func TestGetArchivesSingleRepository(t *testing.T) {
 
 }
 
-func fakeExecCommandGetArchivesSingleRepository(command string, args ...string) *exec.Cmd {
+func fakeExecCommandGetArchivesSingleRepository(_ context.Context, command string, args ...string) *exec.Cmd {
 	cs := []string{"-test.run=TestGetArchivesSingleRepositoryHelperProcess", "--", command}
 	cs = append(cs, args...)
 	cmd := exec.Command(os.Args[0], cs...)

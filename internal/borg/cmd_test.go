@@ -7,7 +7,7 @@ import (
 )
 
 func TestExecCommand(t *testing.T) {
-	want := exec.Command
+	want := exec.CommandContext
 	got := execCommand
 
 	if reflect.TypeOf(want) != reflect.TypeOf(got) {

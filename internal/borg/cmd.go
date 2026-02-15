@@ -2,5 +2,5 @@ package borg
 
 import "os/exec"
 
-// Allows unit testing exec.Command output
-var execCommand = exec.Command
+// Allows unit testing exec.CommandContext output
+var execCommand = exec.CommandContext

@@ -1,13 +1,14 @@
 package borg
 
 import (
+	"context"
 	"reflect"
 	"testing"
 )
 
 func TestNew(t *testing.T) {
 	want := &borg{}
-	got, err := New()
+	got, err := New(context.Background())
 
 	if err != nil {
 		t.Fatalf("Expected nil error, got %#v", err)

@@ -1,12 +1,13 @@
 package borg
 
 import (
+	"context"
 	"errors"
 	"strings"
 )
 
-func getVersion() (string, error) {
-	borgmaticCmd := execCommand("borg", "--version")
+func getVersion(ctx context.Context) (string, error) {
+	borgmaticCmd := execCommand(ctx, "borg", "--version")
 
 	borgVersion, err := borgmaticCmd.Output()
 	if err != nil {

@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -23,21 +27,28 @@ func main() {
 
 	logs.Configure(config.Debug, config.LogFormat)
 
-	collector := metrics.New(config.Config)
+	collector := metrics.New(config.Config, config.Timeout)
 	prometheus.MustRegister(collector)
 
 	http.Handle(fmt.Sprintf("/%s", config.Endpoint), promhttp.Handler())
 	addr := config.Host + ":" + config.Port
-	logs.Logger.Info(fmt.Sprintf("listening on http://%s/%s", addr, config.Endpoint))
-	err = http.ListenAndServe(addr, nil)
 
-	if errors.Is(err, http.ErrServerClosed) {
-		logs.Logger.Error("server closed",
-			"error", err.Error())
-	} else if err != nil {
-		logs.Logger.Error("error starting server",
-			"error", err.Error())
-		logs.Logger.Error("exiting application")
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	server := &http.Server{Addr: addr}
+	go func() {
+		<-ctx.Done()
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			logs.Logger.Error("server shutdown error", "error", err.Error())
+		}
+	}()
+
+	logs.Logger.Info(fmt.Sprintf("listening on http://%s/%s", addr, config.Endpoint))
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logs.Logger.Error("error starting server", "error", err.Error())
 		os.Exit(1)
 	}
 }

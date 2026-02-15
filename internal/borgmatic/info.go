@@ -1,20 +1,21 @@
 package borgmatic
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 )
 
-func getInfo(config string) ([]InfoResult, error) {
-	var borgmaticCmd = execCommand("borgmatic")
+func getInfo(ctx context.Context, config string) ([]InfoResult, error) {
+	var borgmaticCmd = execCommand(ctx, "borgmatic")
 	if config != "" {
 		borgmaticCmd.Args = append(borgmaticCmd.Args, "-c")
 		configs := strings.Split(config, " ")
 		borgmaticCmd.Args = append(borgmaticCmd.Args, configs...)
 
 	}
-	borgmaticCmd.Args = append(borgmaticCmd.Args, "info", "--json")
+	borgmaticCmd.Args = append(borgmaticCmd.Args, "info", "--json", "-v", "-1")
 
 	var info []InfoResult
 

@@ -1,6 +1,7 @@
 package borgmatic
 
 import (
+	"context"
 	"sort"
 	"time"
 )
@@ -11,11 +12,11 @@ type borgmatic struct {
 	InfoResult []InfoResult
 }
 
-func New(config string) (*borgmatic, error) {
+func New(ctx context.Context, config string) (*borgmatic, error) {
 	b := borgmatic{}
 
 	// Get Version
-	ver, err := getVersion()
+	ver, err := getVersion(ctx)
 
 	if err != nil {
 		b.Version = "0"
@@ -24,7 +25,7 @@ func New(config string) (*borgmatic, error) {
 	}
 
 	// Get List Results
-	res, err := getArchives(config)
+	res, err := getArchives(ctx, config)
 
 	if err != nil {
 		res = []ListResult{}
@@ -33,7 +34,7 @@ func New(config string) (*borgmatic, error) {
 	b.ListResult = res
 
 	// Get Info Results
-	info, err := getInfo(config)
+	info, err := getInfo(ctx, config)
 
 	if err != nil {
 		info = []InfoResult{}
