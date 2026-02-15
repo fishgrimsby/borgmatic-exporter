@@ -1,27 +1,26 @@
-FROM golang:1.25-alpine AS build-stage
+FROM golang:1.25.7-alpine AS build
 
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . ./
-RUN go build ./cmd/borgmatic-exporter
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" ./cmd/borgmatic-exporter
 
-FROM build-stage AS test-stage
+FROM build AS test
 RUN go test -v ./...
 RUN go vet -v ./...
 
-FROM debian:bookworm-slim AS package-stage
+FROM debian:trixie-slim AS final
 WORKDIR /
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
-    && apt-get -y upgrade \
-    && apt-get -y install --no-install-recommends \
+ && apt-get -y upgrade \
+ && apt-get -y install --no-install-recommends \
     borgbackup borgmatic openssh-client \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
-FROM package-stage AS final-stage
-WORKDIR /
-COPY --from=build-stage /app/borgmatic-exporter /bin/borgmatic-exporter
+COPY --from=build /app/borgmatic-exporter /bin/borgmatic-exporter
+
 EXPOSE 8090
 ENTRYPOINT ["/bin/borgmatic-exporter"]
