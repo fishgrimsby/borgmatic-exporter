@@ -8,6 +8,7 @@ RUN go build ./cmd/borgmatic-exporter
 
 FROM build-stage AS test-stage
 RUN go test -v ./...
+RUN go vet -v ./...
 
 FROM debian:bookworm-slim AS package-stage
 WORKDIR /
