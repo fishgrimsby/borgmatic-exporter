@@ -1,6 +1,7 @@
 package borgmatic
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -39,10 +40,10 @@ var infoEncryption Encryption = Encryption{
 
 func TestGetInfoSingleRepository(t *testing.T) {
 	execCommand = fakeExecCommandGetInfoSingleRepository
-	defer func() { execCommand = exec.Command }()
+	defer func() { execCommand = exec.CommandContext }()
 
 	want := []InfoResult{infoResult}
-	got, err := getInfo("")
+	got, err := getInfo(context.Background(), "")
 
 	if err != nil {
 		t.Fatalf("Expected nil error, got %#v", err)
@@ -53,7 +54,7 @@ func TestGetInfoSingleRepository(t *testing.T) {
 	}
 }
 
-func fakeExecCommandGetInfoSingleRepository(command string, args ...string) *exec.Cmd {
+func fakeExecCommandGetInfoSingleRepository(_ context.Context, command string, args ...string) *exec.Cmd {
 	cs := []string{"-test.run=TestGetInfoSingleRepositoryHelperProcess", "--", command}
 	cs = append(cs, args...)
 	cmd := exec.Command(os.Args[0], cs...)

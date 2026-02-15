@@ -1,6 +1,9 @@
 package metrics
 
 import (
+	"context"
+	"time"
+
 	"github.com/fishgrimsby/borgmatic-exporter/internal/borg"
 	"github.com/fishgrimsby/borgmatic-exporter/internal/borgmatic"
 	"github.com/fishgrimsby/borgmatic-exporter/internal/logs"
@@ -9,6 +12,7 @@ import (
 
 type Collector struct {
 	config                     string
+	timeout                    time.Duration
 	borgmaticTotalUniqueChunks *prometheus.Desc
 	borgmaticTotalChunks       *prometheus.Desc
 	borgmaticDeduplicatedSize  *prometheus.Desc
@@ -21,10 +25,11 @@ type Collector struct {
 	borgVersion                *prometheus.Desc
 }
 
-func New(config string) *Collector {
+func New(config string, timeout time.Duration) *Collector {
 
 	return &Collector{
 		config:                     config,
+		timeout:                    timeout,
 		borgmaticTotalUniqueChunks: prometheus.NewDesc("borgmatic_unique_chunks_total", "Total number of unique chunks in backup data", []string{"repository"}, nil),
 		borgmaticTotalChunks:       prometheus.NewDesc("borgmatic_chunks_total", "Total number of chunks in backup data", []string{"repository"}, nil),
 		borgmaticDeduplicatedSize:  prometheus.NewDesc("borgmatic_deduplicated_size", "Deduplicated size in bytes of backup data", []string{"repository"}, nil),
@@ -61,15 +66,18 @@ func sendMetric(ch chan<- prometheus.Metric, desc *prometheus.Desc, valueType pr
 }
 
 func (collector *Collector) Collect(ch chan<- prometheus.Metric) {
+	ctx, cancel := context.WithTimeout(context.Background(), collector.timeout)
+	defer cancel()
+
 	logs.Logger.Debug("Start collecting metrics")
-	borg, err := borg.New()
+	borg, err := borg.New(ctx)
 	if err != nil {
 		logs.Logger.Error(err.Error())
 	}
 
 	sendMetric(ch, collector.borgVersion, prometheus.GaugeValue, 1, borg.Version)
 
-	borgmatic, err := borgmatic.New(collector.config)
+	borgmatic, err := borgmatic.New(ctx, collector.config)
 	if err != nil {
 		logs.Logger.Error(err.Error())
 	}

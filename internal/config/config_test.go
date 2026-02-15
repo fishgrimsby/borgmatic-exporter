@@ -2,12 +2,14 @@ package config
 
 import (
 	"testing"
+	"time"
 )
 
 func TestLoad(t *testing.T) {
 	t.Setenv("BORGMATIC_EXPORTER_HOST", "127.0.0.1")
 	t.Setenv("BORGMATIC_EXPORTER_PORT", "9090")
 	t.Setenv("BORGMATIC_EXPORTER_ENDPOINT", "prom")
+	t.Setenv("BORGMATIC_EXPORTER_TIMEOUT", "30s")
 
 	got, err := Load()
 
@@ -23,5 +25,8 @@ func TestLoad(t *testing.T) {
 	}
 	if got.Endpoint != "prom" {
 		t.Errorf("Expected Endpoint prom, got %q", got.Endpoint)
+	}
+	if got.Timeout != 30*time.Second {
+		t.Errorf("Expected Timeout 30s, got %v", got.Timeout)
 	}
 }

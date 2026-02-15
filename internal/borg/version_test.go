@@ -1,6 +1,7 @@
 package borg
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -12,10 +13,10 @@ import (
 // Test version is returned if Borg is installed
 func TestGetVersionInstalled(t *testing.T) {
 	execCommand = fakeExecCommandInstalled
-	defer func() { execCommand = exec.Command }()
+	defer func() { execCommand = exec.CommandContext }()
 
 	want := regexp.MustCompile(`(?m)^borg (?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
-	got, err := getVersion()
+	got, err := getVersion(context.Background())
 
 	if err != nil {
 		t.Fatalf("Expected nil error, got %#v", err)
@@ -29,10 +30,10 @@ func TestGetVersionInstalled(t *testing.T) {
 // Test for error if Borg is not installed
 func TestGetVersionNotInstalled(t *testing.T) {
 	execCommand = fakeExecCommandNotInstalled
-	defer func() { execCommand = exec.Command }()
+	defer func() { execCommand = exec.CommandContext }()
 
 	want := errors.New("executable not found")
-	_, got := getVersion()
+	_, got := getVersion(context.Background())
 
 	if got == nil {
 		t.Fatalf(`getVersion() = %v, want match for, got %v`, want, got)
@@ -59,7 +60,7 @@ func TestGetVersionInstalledHelperProcess(t *testing.T) {
 	os.Exit(0)
 }
 
-func fakeExecCommandInstalled(command string, args ...string) *exec.Cmd {
+func fakeExecCommandInstalled(_ context.Context, command string, args ...string) *exec.Cmd {
 	cs := []string{"-test.run=TestGetVersionInstalledHelperProcess", "--", command}
 	cs = append(cs, args...)
 	cmd := exec.Command(os.Args[0], cs...)
@@ -67,7 +68,7 @@ func fakeExecCommandInstalled(command string, args ...string) *exec.Cmd {
 	return cmd
 }
 
-func fakeExecCommandNotInstalled(command string, args ...string) *exec.Cmd {
+func fakeExecCommandNotInstalled(_ context.Context, command string, args ...string) *exec.Cmd {
 	cs := []string{"-test.run=TestGetVersionNotInstalledHelperProcess", "--", command}
 	cs = append(cs, args...)
 	cmd := exec.Command(os.Args[0], cs...)

@@ -1,16 +1,19 @@
 package config
 
 import (
+	"time"
+
 	"github.com/kelseyhightower/envconfig"
 )
 
 type specification struct {
-	Host      string `default:"0.0.0.0"`
-	Port      string `default:"8090"`
-	Endpoint  string `default:"metrics"`
-	Config    string `default:""`
-	Debug     bool   `default:"false"`
-	LogFormat string `default:"keyvalue"`
+	Host      string        `default:"0.0.0.0"`
+	Port      string        `default:"8090"`
+	Endpoint  string        `default:"metrics"`
+	Config    string        `default:""`
+	Debug     bool          `default:"false"`
+	LogFormat string        `default:"keyvalue"`
+	Timeout   time.Duration `default:"120s"`
 }
 
 func Load() (*specification, error) {

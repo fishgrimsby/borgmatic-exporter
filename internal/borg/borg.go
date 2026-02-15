@@ -1,13 +1,15 @@
 package borg
 
+import "context"
+
 type borg struct {
 	Version string
 }
 
-func New() (*borg, error) {
+func New(ctx context.Context) (*borg, error) {
 	b := borg{}
 
-	ver, err := getVersion()
+	ver, err := getVersion(ctx)
 
 	if err != nil {
 		b.Version = "0"
