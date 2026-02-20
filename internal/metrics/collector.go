@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/fishgrimsby/borgmatic-exporter/internal/borg"
@@ -10,9 +11,17 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+type cachedData struct {
+	borgVersion      string
+	borgmaticVersion string
+	listResults      []borgmatic.ListResult
+	infoResults      []borgmatic.InfoResult
+}
+
 type Collector struct {
 	config                     string
 	timeout                    time.Duration
+	interval                   time.Duration
 	borgmaticTotalUniqueChunks *prometheus.Desc
 	borgmaticTotalChunks       *prometheus.Desc
 	borgmaticDeduplicatedSize  *prometheus.Desc
@@ -23,13 +32,17 @@ type Collector struct {
 	borgmaticArchives          *prometheus.Desc
 	borgmaticVersion           *prometheus.Desc
 	borgVersion                *prometheus.Desc
+
+	mu    sync.RWMutex
+	cache *cachedData
 }
 
-func New(config string, timeout time.Duration) *Collector {
+func New(config string, timeout time.Duration, interval time.Duration) *Collector {
 
 	return &Collector{
 		config:                     config,
 		timeout:                    timeout,
+		interval:                   interval,
 		borgmaticTotalUniqueChunks: prometheus.NewDesc("borgmatic_unique_chunks_total", "Total number of unique chunks in backup data", []string{"repository"}, nil),
 		borgmaticTotalChunks:       prometheus.NewDesc("borgmatic_chunks_total", "Total number of chunks in backup data", []string{"repository"}, nil),
 		borgmaticDeduplicatedSize:  prometheus.NewDesc("borgmatic_deduplicated_size", "Deduplicated size in bytes of backup data", []string{"repository"}, nil),
@@ -41,6 +54,54 @@ func New(config string, timeout time.Duration) *Collector {
 		borgVersion:                prometheus.NewDesc("borg_info", "Installed version of Borg", []string{"version"}, nil),
 		borgmaticArchives:          prometheus.NewDesc("borgmatic_archives_total", "Total number of archives", []string{"repository"}, nil),
 	}
+}
+
+func (c *Collector) runCollection(ctx context.Context) {
+	collectionCtx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
+	logs.Logger.Debug("Start collecting metrics")
+
+	borgResult, err := borg.New(collectionCtx)
+	if err != nil {
+		logs.Logger.Error(err.Error())
+		return
+	}
+
+	borgmaticResult, err := borgmatic.New(collectionCtx, c.config)
+	if err != nil {
+		logs.Logger.Error(err.Error())
+		return
+	}
+
+	data := cachedData{
+		borgVersion:      borgResult.Version,
+		borgmaticVersion: borgmaticResult.Version,
+		listResults:      borgmaticResult.ListResult,
+		infoResults:      borgmaticResult.InfoResult,
+	}
+
+	c.mu.Lock()
+	c.cache = &data
+	c.mu.Unlock()
+
+	logs.Logger.Debug("End collecting metrics")
+}
+
+func (c *Collector) Start(ctx context.Context) {
+	c.runCollection(ctx)
+	go func() {
+		ticker := time.NewTicker(c.interval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				c.runCollection(ctx)
+			}
+		}
+	}()
 }
 
 func (collector *Collector) Describe(ch chan<- *prometheus.Desc) {
@@ -65,37 +126,29 @@ func sendMetric(ch chan<- prometheus.Metric, desc *prometheus.Desc, valueType pr
 	ch <- m
 }
 
-func (collector *Collector) Collect(ch chan<- prometheus.Metric) {
-	ctx, cancel := context.WithTimeout(context.Background(), collector.timeout)
-	defer cancel()
+func (c *Collector) Collect(ch chan<- prometheus.Metric) {
+	c.mu.RLock()
+	cache := c.cache
+	c.mu.RUnlock()
 
-	logs.Logger.Debug("Start collecting metrics")
-	borg, err := borg.New(ctx)
-	if err != nil {
-		logs.Logger.Error(err.Error())
+	if cache == nil {
+		return
 	}
 
-	sendMetric(ch, collector.borgVersion, prometheus.GaugeValue, 1, borg.Version)
+	sendMetric(ch, c.borgVersion, prometheus.GaugeValue, 1, cache.borgVersion)
+	sendMetric(ch, c.borgmaticVersion, prometheus.GaugeValue, 1, cache.borgmaticVersion)
+	sendMetric(ch, c.borgmaticRepos, prometheus.GaugeValue, float64(len(cache.listResults)))
 
-	borgmatic, err := borgmatic.New(ctx, collector.config)
-	if err != nil {
-		logs.Logger.Error(err.Error())
-	}
-	sendMetric(ch, collector.borgmaticVersion, prometheus.GaugeValue, 1, borgmatic.Version)
-	sendMetric(ch, collector.borgmaticRepos, prometheus.GaugeValue, float64(len(borgmatic.ListResult)))
-
-	for _, result := range borgmatic.ListResult {
-		sendMetric(ch, collector.borgmaticArchives, prometheus.GaugeValue, float64(len(result.Archives)), result.Repository.Location)
-		sendMetric(ch, collector.borgmaticLastBackupTime, prometheus.GaugeValue, float64(borgmatic.LastBackupTime(&result)), result.Repository.Location)
+	for _, result := range cache.listResults {
+		sendMetric(ch, c.borgmaticArchives, prometheus.GaugeValue, float64(len(result.Archives)), result.Repository.Location)
+		sendMetric(ch, c.borgmaticLastBackupTime, prometheus.GaugeValue, float64(borgmatic.LastBackupTime(&result)), result.Repository.Location)
 	}
 
-	for _, info := range borgmatic.InfoResult {
-		sendMetric(ch, collector.borgmaticDeduplicatedSize, prometheus.GaugeValue, float64(info.Cache.Stats.UniqueCsize), info.Repository.Location)
-		sendMetric(ch, collector.borgmaticCompressedSize, prometheus.GaugeValue, float64(info.Cache.Stats.TotalCsize), info.Repository.Location)
-		sendMetric(ch, collector.borgmaticOriginalSize, prometheus.GaugeValue, float64(info.Cache.Stats.TotalSize), info.Repository.Location)
-		sendMetric(ch, collector.borgmaticTotalChunks, prometheus.GaugeValue, float64(info.Cache.Stats.TotalChunks), info.Repository.Location)
-		sendMetric(ch, collector.borgmaticTotalUniqueChunks, prometheus.GaugeValue, float64(info.Cache.Stats.TotalUniqueChunks), info.Repository.Location)
+	for _, info := range cache.infoResults {
+		sendMetric(ch, c.borgmaticDeduplicatedSize, prometheus.GaugeValue, float64(info.Cache.Stats.UniqueCsize), info.Repository.Location)
+		sendMetric(ch, c.borgmaticCompressedSize, prometheus.GaugeValue, float64(info.Cache.Stats.TotalCsize), info.Repository.Location)
+		sendMetric(ch, c.borgmaticOriginalSize, prometheus.GaugeValue, float64(info.Cache.Stats.TotalSize), info.Repository.Location)
+		sendMetric(ch, c.borgmaticTotalChunks, prometheus.GaugeValue, float64(info.Cache.Stats.TotalChunks), info.Repository.Location)
+		sendMetric(ch, c.borgmaticTotalUniqueChunks, prometheus.GaugeValue, float64(info.Cache.Stats.TotalUniqueChunks), info.Repository.Location)
 	}
-
-	logs.Logger.Debug("End collecting metrics")
 }
