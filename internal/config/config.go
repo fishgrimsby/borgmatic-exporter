@@ -14,6 +14,7 @@ type specification struct {
 	Debug     bool          `default:"false"`
 	LogFormat string        `default:"keyvalue"`
 	Timeout   time.Duration `default:"120s"`
+	Interval  time.Duration `default:"60m"`
 }
 
 func Load() (*specification, error) {

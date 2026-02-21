@@ -7,8 +7,8 @@ import (
 )
 
 type borgmatic struct {
-	Version     string
-	ListResult  []ListResult
+	Version    string
+	ListResult []ListResult
 	InfoResult []InfoResult
 }
 
@@ -45,7 +45,7 @@ func New(ctx context.Context, config string) (*borgmatic, error) {
 	return &b, nil
 }
 
-func (b *borgmatic) LastBackupTime(result *ListResult) int64 {
+func LastBackupTime(result *ListResult) int64 {
 	var lastBackupTime int64 = 0
 
 	var times []string

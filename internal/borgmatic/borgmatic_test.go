@@ -21,9 +21,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestLastBackupTime(t *testing.T) {
-	b, _ := New(context.Background(), "")
 	var want int64 = 1678913859
-	got := b.LastBackupTime(&listResult)
+	got := LastBackupTime(&listResult)
 
 	if want != got {
 		t.Fatalf(`LastBackupTime(listResult) = %v, want match for %#v`, got, want)
@@ -33,9 +32,8 @@ func TestLastBackupTime(t *testing.T) {
 func TestLastBackupTimeZeroArchives(t *testing.T) {
 	listResultZeroArchives := listResult
 	listResultZeroArchives.Archives = []Archive{}
-	b, _ := New(context.Background(), "")
 	var want int64 = 0
-	got := b.LastBackupTime(&listResultZeroArchives)
+	got := LastBackupTime(&listResultZeroArchives)
 
 	if want != got {
 		t.Fatalf(`LastBackupTime(listResultZeroArchives) = %v, want match for %#v`, got, want)

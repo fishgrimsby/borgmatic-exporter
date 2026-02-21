@@ -27,14 +27,15 @@ func main() {
 
 	logs.Configure(config.Debug, config.LogFormat)
 
-	collector := metrics.New(config.Config, config.Timeout)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	collector := metrics.New(config.Config, config.Timeout, config.Interval)
+	collector.Start(ctx)
 	prometheus.MustRegister(collector)
 
 	http.Handle(fmt.Sprintf("/%s", config.Endpoint), promhttp.Handler())
 	addr := config.Host + ":" + config.Port
-
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
 
 	server := &http.Server{Addr: addr}
 	go func() {
