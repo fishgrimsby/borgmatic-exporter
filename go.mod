@@ -2,7 +2,7 @@ module github.com/fishgrimsby/borgmatic-exporter
 
 go 1.25.0
 
-toolchain go1.26.2
+toolchain go1.26.4
 
 require (
 	github.com/kelseyhightower/envconfig v1.4.0
