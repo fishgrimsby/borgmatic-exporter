@@ -7,7 +7,7 @@ toolchain go1.26.4
 require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/prometheus/client_golang v1.23.2
-	golang.org/x/exp v0.0.0-20260709172345-9ea1abe57597
+	golang.org/x/exp v0.0.0-20260727155853-b88d891fe743
 )
 
 require (
