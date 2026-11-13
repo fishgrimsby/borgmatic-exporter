@@ -41,6 +41,32 @@ borgmatic_last_backup_timestamp{repository="ssh://borg@server01/backup/my-data"}
 
 ---
 
+## Grafana Dashboard
+
+An example Grafana dashboard is available at [`grafana/borgmatic-dashboard.json`](grafana/borgmatic-dashboard.json).
+
+![Example of the Borgmatic Grafana dashboard](grafana/screenshot.png)
+
+1. Add the exporter as a scrape target in Prometheus (or any Prometheus-compatible system):
+   ```yaml
+   scrape_configs:
+     - job_name: borgmatic
+       static_configs:
+         - targets: ["backup-host:8090"]
+   ```
+   Because metrics are refreshed on the `INTERVAL` (default 60 minutes), there is no need to scrape frequently. The dashboard reads the latest sample within the `Lookback` window (default `20m`), so if your scrape interval is longer than that, increase `Lookback` to match.
+2. In Grafana, go to **Dashboards → New → Import**, upload the JSON file and pick your Prometheus data source.
+
+The dashboard includes:
+- Overview stats: repository and archive counts, total size on disk, and Borg/Borgmatic versions
+- Time since the last backup per repository, coloured orange after 26h and red after 48h (edit the thresholds to suit your backup schedule)
+- Repository size over time, original vs compressed vs deduplicated size, and the space savings ratio
+- Archive counts and chunk statistics per repository
+
+Use the `Instance` and `Repository` drop-downs to filter when you monitor more than one host or repository.
+
+---
+
 ## How It Works
 
 The exporter uses a **background collection model** to keep the `/metrics` endpoint responsive:
